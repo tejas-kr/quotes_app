@@ -37,15 +37,13 @@
     </tbody>
   </table>
 
-  <nav aria-label="Page navigation example" id="pages_nav" style="display: none;">
-    <ul class="pagination" id="pages_ul">
-      <!-- <li class="page-item"><a class="page-link" href="#">Previous</a></li> -->
-      <!-- <li class="page-item"><a class="page-link" href="#">1</a></li>
-      <li class="page-item"><a class="page-link" href="#">2</a></li>
-      <li class="page-item"><a class="page-link" href="#">3</a></li> -->
-      <!-- <li class="page-item"><a class="page-link" href="#">Next</a></li> -->
-    </ul>
-  </nav>
+  <center>
+    <select id="page_sel" aria-label="Default select example" style="display: none; width: 10%;">
+      <!-- <option value="1">1</option> -->
+    </select>
+  </center>
+
+  
   
   
 {% endblock %}
@@ -55,49 +53,59 @@
 <script>
 
   const csrf_token = $("input[name=csrfmiddlewaretoken]").val()
+
+  function get_quotes_ajax(page=1) {
+    $.ajax({
+      url: "{% url 'get_quotes' %}",
+      type: 'POST',
+      headers: {
+          'X-CSRFToken': csrf_token
+      },
+      data: {
+          query: $("#query").val(),
+          page: page
+      },
+      dataType: 'json',
+      success: function (data) {
+        
+        console.log(data[1])
+        
+        $("#q_table_body").empty()
+        $("#quotes_table").show()
+        
+        for(var i = 0; i < data[0].length; i++) {
+          $("#q_table_body").append(`
+          <tr>
+            <td>${data[0][i]["author"]}</td>
+            <td>${data[0][i]["text"]}</td>
+          </tr>
+          `)
+        }
+
+        $("#page_sel").show()
+        for (var i=1; i<=parseInt(data[1]); i++) {
+          $("#page_sel").append(`
+            <option value="${i}">${i}</option>
+          `)
+        }
+
+      }
+    })
+  }
+
   $("#get_q_button").click(function (e) {
     e.preventDefault()
     
     if ($("#query").val() !== "") {
 
-      $.ajax({
-        url: "{% url 'get_quotes' %}",
-        type: 'POST',
-        headers: {
-            'X-CSRFToken': csrf_token
-        },
-        data: {
-            query: $("#query").val(),
-            page: 0
-        },
-        dataType: 'json',
-        success: function (data) {
-          
-          console.log(data[1])
-          
-          $("#q_table_body").empty()
-          $("#quotes_table").show()
-          
-          for(var i = 0; i < data[0].length; i++) {
-            $("#q_table_body").append(`
-            <tr>
-              <td>${data[0][i]["author"]}</td>
-              <td>${data[0][i]["text"]}</td>
-            </tr>
-            `)
-          }
-
-          // $("#pages_nav").show()
-          // for (var i=1; i<=parseInt(data[1]); i++) {
-          //   $("#pages_ul").append(`
-          //     <li class="page-item"><a class="page-link" href="#">${i}</a></li>
-          //   `)
-          // }
-
-        }
-      })
+      get_quotes_ajax()
 
     }
+  })
+
+  $("#page_sel").change(function (e) {
+    e.preventDefault()
+    get_quotes_ajax($("#page_sel").val())
   })
 </script>
 

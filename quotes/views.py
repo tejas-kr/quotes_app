@@ -10,7 +10,8 @@ def index(req):
 def get_quotes_ajax(req):
     if req.method == "POST":
         query = req.POST["query"]
-        quotes = get_quotes(query)
+        page = req.POST["page"]
+        quotes = get_quotes(query, page)
         # context = {}
         # context["quotes"] = quotes
         return JsonResponse(quotes, safe=False)
