@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Quotes App{% endblock %}
+
+{% block content %}
+  <h2>
+    Quotes App
+  </h2>
+  <hr>
+
+  <div class="row form-inline container">
+    <div class="col-lg-9">
+      <input type="text" class="form-control" id="query" placeholder="Author/Topic Here">
+    </div>
+    <div class="col-lg-3">
+      <button type="button" id="get_q_button" class="btn btn-primary mb-3">Get Quotes</button>
+    </div>
+    {% csrf_token %}
+  </div>
+  
+
+  <table class="table" id="quotes_table" style="display: none;">
+    <thead>
+      <tr>
+        <th>Author</th>
+        <th>Quote</th>
+        <!-- <th>Likes</th> -->
+      </tr>
+    </thead>
+    <tbody id="q_table_body">
+      <tr>
+        <td>Neil Gaiman</td>
+        <td>I've been making a list of the things they don't teach you at school. They don't teach you how to love somebody. They don't teach you how to be famous. They don't teach you how to be rich or how to be poor. They don't teach you how to walk away from someone you don't love any longer. They don't teach you how to know what's going on in someone else's mind. They don't teach you what to say to someone who's dying. They don't teach you anything worth knowing.</td>
+        <!-- <td>18</td> -->
+      </tr>
+      
+    </tbody>
+  </table>
+
+  <nav aria-label="Page navigation example" id="pages_nav" style="display: none;">
+    <ul class="pagination" id="pages_ul">
+      <!-- <li class="page-item"><a class="page-link" href="#">Previous</a></li> -->
+      <!-- <li class="page-item"><a class="page-link" href="#">1</a></li>
+      <li class="page-item"><a class="page-link" href="#">2</a></li>
+      <li class="page-item"><a class="page-link" href="#">3</a></li> -->
+      <!-- <li class="page-item"><a class="page-link" href="#">Next</a></li> -->
+    </ul>
+  </nav>
+  
+  
+{% endblock %}
+
+{% block script %}
+
+<script>
+
+  const csrf_token = $("input[name=csrfmiddlewaretoken]").val()
+  $("#get_q_button").click(function (e) {
+    e.preventDefault()
+    
+    if ($("#query").val() !== "") {
+
+      $.ajax({
+        url: "{% url 'get_quotes' %}",
+        type: 'POST',
+        headers: {
+            'X-CSRFToken': csrf_token
+        },
+        data: {
+            query: $("#query").val(),
+            page: 0
+        },
+        dataType: 'json',
+        success: function (data) {
+          
+          console.log(data[1])
+          
+          $("#q_table_body").empty()
+          $("#quotes_table").show()
+          
+          for(var i = 0; i < data[0].length; i++) {
+            $("#q_table_body").append(`
+            <tr>
+              <td>${data[0][i]["author"]}</td>
+              <td>${data[0][i]["text"]}</td>
+            </tr>
+            `)
+          }
+
+          // $("#pages_nav").show()
+          // for (var i=1; i<=parseInt(data[1]); i++) {
+          //   $("#pages_ul").append(`
+          //     <li class="page-item"><a class="page-link" href="#">${i}</a></li>
+          //   `)
+          // }
+
+        }
+      })
+
+    }
+  })
+</script>
+
+{% endblock %}
